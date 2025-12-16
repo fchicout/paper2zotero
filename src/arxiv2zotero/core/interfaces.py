@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Optional
+from typing import Optional, Iterator
 from .models import ArxivPaper
 
 class ZoteroGateway(ABC):
@@ -17,5 +17,13 @@ class ZoteroGateway(ABC):
         Creates a new Zotero item based on the provided ArxivPaper data
         and adds it to the specified collection.
         Returns True on success, False otherwise.
+        """
+        pass
+
+class ArxivGateway(ABC):
+    @abstractmethod
+    def search(self, query: str, limit: int = 100) -> Iterator[ArxivPaper]:
+        """
+        Searches arXiv for papers matching the query and returns an iterator of ArxivPaper objects.
         """
         pass
