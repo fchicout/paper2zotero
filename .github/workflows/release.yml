@@ -61,7 +61,7 @@ jobs:
           mv paper2zotero-*.rpm paper2zotero-linux-amd64.rpm
 
       - name: Upload Artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: linux-artifacts
           path: |
@@ -90,7 +90,7 @@ jobs:
           pyinstaller --onefile --name paper2zotero --clean src/paper2zotero/cli/main.py
 
       - name: Upload Artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: windows-artifacts
           path: dist/paper2zotero.exe
@@ -99,11 +99,11 @@ jobs:
     needs: [build-linux, build-windows]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: linux-artifacts
       
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: windows-artifacts
 
