@@ -159,6 +159,25 @@ paper2zotero graph --collections "AI, Machine Learning" > citation_graph.dot
 dot -Tsvg citation_graph.dot -o citation_graph.svg
 ```
 
+## Changelog
+
+### v0.2.0 (December 16, 2025)
+
+This release introduces significant new features and architectural improvements focused on Zotero collection management and advanced citation analysis.
+
+**New Features:**
+*   **Move Paper (`move` command)**: Easily move Zotero items between collections using their DOI or arXiv ID.
+*   **Collection Audit (`audit` command)**: Verify the completeness of papers in a Zotero collection, checking for missing DOIs, arXiv IDs, titles, abstracts, and PDF attachments.
+*   **Duplicate Detection (`duplicates` command)**: Identify duplicate papers across multiple specified Zotero collections based on DOI or normalized title.
+*   **Citation Graph Generation (`graph` command)**: Generate Graphviz DOT format output representing citation relationships between papers in your Zotero collections. This leverages metadata from external providers.
+*   **List Collections (`list-collections` command)**: View all Zotero collections in your target group, including their unique keys and item counts.
+
+**Architectural Improvements:**
+*   **Metadata Aggregation**: Implemented a `MetadataAggregatorService` to combine and select the "best" metadata from multiple external providers (currently CrossRef and Semantic Scholar).
+*   **Semantic Scholar Integration**: Added `SemanticScholarAPIClient` to fetch rich metadata, including abstracts and references, adhering to rate limits.
+*   **Domain Model Enhancement**: Introduced `ZoteroItem` for robust internal representation of Zotero library items and enhanced the `ResearchPaper` model to include references and citation counts.
+*   **Performance Optimizations**: Refactored `ZoteroAPIClient` to use `requests.Session` for improved network efficiency and parallelized PDF attachment checks in `CollectionAuditor` using `ThreadPoolExecutor`.
+
 ## Development
 
 ```bash
