@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
 from typing import List, Optional
+import concurrent.futures
 from paper2zotero.core.interfaces import ZoteroGateway
 from paper2zotero.core.zotero_item import ZoteroItem
 
@@ -22,7 +23,9 @@ class CollectionAuditor:
             return None
 
         report = AuditReport()
+        items_to_check_pdf = []
         
+        # 1. Fetch items and perform local checks
         for item in self.gateway.get_items_in_collection(collection_id):
             report.total_items += 1
 
@@ -33,17 +36,34 @@ class CollectionAuditor:
             if not item.abstract:
                 report.items_missing_abstract.append(item)
             
-            # Check for PDF attachments
-            has_pdf_attachment = False
-            children = self.gateway.get_item_children(item.key)
-            for child in children:
-                if child.get('data', {}).get('itemType') == 'attachment' and \
-                   child.get('data', {}).get('linkMode') == 'imported_file' and \
-                   child.get('data', {}).get('filename', '').lower().endswith('.pdf'):
-                    has_pdf_attachment = True
-                    break
+            items_to_check_pdf.append(item)
+
+        # 2. Check for PDF attachments in parallel
+        with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+            # Create a map of future -> item
+            future_to_item = {
+                executor.submit(self._has_pdf_attachment, item.key): item 
+                for item in items_to_check_pdf
+            }
             
-            if not has_pdf_attachment:
-                report.items_missing_pdf.append(item)
+            for future in concurrent.futures.as_completed(future_to_item):
+                item = future_to_item[future]
+                try:
+                    has_pdf = future.result()
+                    if not has_pdf:
+                        report.items_missing_pdf.append(item)
+                except Exception as exc:
+                    print(f"Error checking PDF for item {item.key}: {exc}")
+                    # Assume missing if check failed? Or just log.
+                    # report.items_missing_pdf.append(item) 
 
         return report
+
+    def _has_pdf_attachment(self, item_key: str) -> bool:
+        children = self.gateway.get_item_children(item_key)
+        for child in children:
+            if child.get('data', {}).get('itemType') == 'attachment' and \
+               child.get('data', {}).get('linkMode') == 'imported_file' and \
+               child.get('data', {}).get('filename', '').lower().endswith('.pdf'):
+                return True
+        return False
