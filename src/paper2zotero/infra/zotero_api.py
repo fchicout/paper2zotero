@@ -149,3 +149,22 @@ class ZoteroAPIClient(ZoteroGateway):
         except requests.exceptions.RequestException as e:
             print(f"Error deleting item {item_key}: {e}")
             return False
+
+    def update_item_collections(self, item_key: str, version: int, collections: List[str]) -> bool:
+        url = f"{self.BASE_URL}/groups/{self.group_id}/items/{item_key}"
+        headers = self.headers.copy()
+        headers['If-Match'] = str(version)
+        
+        payload = {
+            "collections": collections
+        }
+        
+        try:
+            response = requests.patch(url, headers=headers, json=payload)
+            response.raise_for_status()
+            return True
+        except requests.exceptions.RequestException as e:
+            print(f"Error updating item {item_key} collections: {e}")
+            if hasattr(e, 'response') and e.response is not None:
+                print(f"Response content: {e.response.text}")
+            return False

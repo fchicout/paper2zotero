@@ -49,6 +49,15 @@ class ZoteroGateway(ABC):
         """
         pass
 
+    @abstractmethod
+    def update_item_collections(self, item_key: str, version: int, collections: List[str]) -> bool:
+        """
+        Updates the list of collections an item belongs to.
+        Requires item_key, current version, and the new list of collection IDs.
+        Returns True on success, False otherwise.
+        """
+        pass
+
 class ArxivGateway(ABC):
     @abstractmethod
     def search(self, query: str, limit: int = 100) -> Iterator[ResearchPaper]:
