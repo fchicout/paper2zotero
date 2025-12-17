@@ -1,0 +1,53 @@
+from typing import List, Dict, Set, Tuple
+from collections import defaultdict
+from paper2zotero.core.interfaces import ZoteroGateway, CitationGateway
+from paper2zotero.core.zotero_item import ZoteroItem
+
+class CitationGraphService:
+    def __init__(self, zotero_gateway: ZoteroGateway, citation_gateway: CitationGateway):
+        self.zotero_gateway = zotero_gateway
+        self.citation_gateway = citation_gateway
+
+    def build_graph(self, collection_names: List[str]) -> str:
+        doi_to_item_map: Dict[str, ZoteroItem] = {}
+        
+        # 1. Collect all ZoteroItems with DOIs from specified collections
+        for col_name in collection_names:
+            col_id = self.zotero_gateway.get_collection_id_by_name(col_name)
+            if not col_id:
+                print(f"Warning: Collection '{col_name}' not found. Skipping.")
+                continue
+            
+            for item in self.zotero_gateway.get_items_in_collection(col_id):
+                if item.doi:
+                    doi_to_item_map[item.doi] = item
+        
+        all_dois_in_collections: Set[str] = set(doi_to_item_map.keys())
+        graph_edges: List[Tuple[str, str]] = [] # (citing_doi, cited_doi)
+
+        # 2. Build graph edges by fetching references
+        for citing_doi, citing_item in doi_to_item_map.items():
+            cited_dois = self.citation_gateway.get_references_by_doi(citing_doi)
+            for cited_doi in cited_dois:
+                # Only add an edge if the cited paper is also in our collected items
+                if cited_doi in all_dois_in_collections:
+                    graph_edges.append((citing_doi, cited_doi))
+
+        # 3. Generate DOT string
+        dot_string = "digraph CitationGraph {\n"
+        dot_string += '  rankdir="LR";\n' # Left-to-right layout
+        
+        # Add nodes
+        for doi, item in doi_to_item_map.items():
+            label = item.title if item.title else f"Item {item.key}"
+            # Sanitize label for DOT (replace quotes and escape special chars)
+            label = label.replace('"', '\"').replace('\n', ' ').strip()
+            dot_string += f'  "{doi}" [label="{label}"];\n'
+
+        # Add edges
+        for citing, cited in graph_edges:
+            dot_string += f'  "{citing}" -> "{cited}";\n'
+        
+        dot_string += "}\n"
+        
+        return dot_string
