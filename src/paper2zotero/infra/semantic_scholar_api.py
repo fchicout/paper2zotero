@@ -65,7 +65,7 @@ class SemanticScholarAPIClient(MetadataProvider):
         
         # Extract References (DOIs only for now)
         references = []
-        for ref in data.get('references', []):
+        for ref in (data.get('references') or []):
             if ref.get('externalIds') and 'DOI' in ref['externalIds']:
                 references.append(ref['externalIds']['DOI'])
 
