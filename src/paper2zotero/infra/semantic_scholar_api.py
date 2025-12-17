@@ -1,11 +1,15 @@
 import requests
 import time
+import os
 from typing import Optional, List
 from paper2zotero.core.interfaces import MetadataProvider
 from paper2zotero.core.models import ResearchPaper
 
 class SemanticScholarAPIClient(MetadataProvider):
     BASE_URL = "https://api.semanticscholar.org/graph/v1/paper"
+
+    def __init__(self):
+        self.api_key = os.environ.get("SEMANTIC_SCHOLAR_API_KEY")
 
     def get_paper_metadata(self, identifier: str) -> Optional[ResearchPaper]:
         """
@@ -25,11 +29,18 @@ class SemanticScholarAPIClient(MetadataProvider):
         
         url = f"{self.BASE_URL}/{s2_id}"
         
+        headers = {'User-Agent': 'paper2zotero/1.0'}
+        if self.api_key:
+            headers['x-api-key'] = self.api_key
+
+        # Rate limiting: 1 request per second
+        time.sleep(1.1)
+
         try:
             response = requests.get(
                 url, 
                 params={'fields': fields},
-                headers={'User-Agent': 'paper2zotero/1.0'}
+                headers=headers
             )
             
             if response.status_code == 404:
