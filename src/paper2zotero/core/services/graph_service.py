@@ -1,12 +1,13 @@
 from typing import List, Dict, Set, Tuple
 from collections import defaultdict
-from paper2zotero.core.interfaces import ZoteroGateway, CitationGateway
+from paper2zotero.core.interfaces import ZoteroGateway
+from paper2zotero.core.services.metadata_aggregator import MetadataAggregatorService
 from paper2zotero.core.zotero_item import ZoteroItem
 
 class CitationGraphService:
-    def __init__(self, zotero_gateway: ZoteroGateway, citation_gateway: CitationGateway):
+    def __init__(self, zotero_gateway: ZoteroGateway, metadata_service: MetadataAggregatorService):
         self.zotero_gateway = zotero_gateway
-        self.citation_gateway = citation_gateway
+        self.metadata_service = metadata_service
 
     def build_graph(self, collection_names: List[str]) -> str:
         doi_to_item_map: Dict[str, ZoteroItem] = {}
@@ -25,13 +26,16 @@ class CitationGraphService:
         all_dois_in_collections: Set[str] = set(doi_to_item_map.keys())
         graph_edges: List[Tuple[str, str]] = [] # (citing_doi, cited_doi)
 
-        # 2. Build graph edges by fetching references
+        # 2. Build graph edges by fetching metadata
         for citing_doi, citing_item in doi_to_item_map.items():
-            cited_dois = self.citation_gateway.get_references_by_doi(citing_doi)
-            for cited_doi in cited_dois:
-                # Only add an edge if the cited paper is also in our collected items
-                if cited_doi in all_dois_in_collections:
-                    graph_edges.append((citing_doi, cited_doi))
+            # Use aggregator to get best metadata including references
+            enriched_item = self.metadata_service.get_enriched_metadata(citing_doi)
+            
+            if enriched_item and enriched_item.references:
+                for cited_doi in enriched_item.references:
+                    # Only add an edge if the cited paper is also in our collected items
+                    if cited_doi in all_dois_in_collections:
+                        graph_edges.append((citing_doi, cited_doi))
 
         # 3. Generate DOT string
         dot_string = "digraph CitationGraph {\n"
