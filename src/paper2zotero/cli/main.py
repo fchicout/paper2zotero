@@ -13,6 +13,8 @@ from paper2zotero.client import PaperImporterClient, CollectionNotFoundError
 from paper2zotero.core.services.collection_service import CollectionService
 from paper2zotero.core.services.audit_service import CollectionAuditor # Import CollectionAuditor
 from paper2zotero.core.services.duplicate_service import DuplicateFinder # Import DuplicateFinder
+from paper2zotero.infra.crossref_api import CrossRefAPIClient # Import CrossRefAPIClient
+from paper2zotero.core.services.graph_service import CitationGraphService # Import CitationGraphService
 
 def get_zotero_gateway():
     """Helper to get Zotero client from environment variables."""
@@ -103,6 +105,16 @@ def duplicates_command(args):
                 print(f"  - Key: {item.key}, Title: '{title_display}', DOI: {item.doi if item.doi else 'N/A'}, ArXiv ID: {item.arxiv_id if item.arxiv_id else 'N/A'}")
     else:
         print(f"No duplicate items found across collections: {', '.join(collection_names)}")
+
+def graph_command(args):
+    """Handles the 'graph' subcommand."""
+    zotero_gateway = get_zotero_gateway()
+    citation_gateway = CrossRefAPIClient() # Use CrossRef as citation source
+    graph_service = CitationGraphService(zotero_gateway, citation_gateway)
+
+    collection_names = [name.strip() for name in args.collections.split(',')]
+    dot_string = graph_service.build_graph(collection_names)
+    print(dot_string) # Output DOT string to stdout
 
 def add_command(args):
     """Handles the 'add' subcommand."""
@@ -306,6 +318,11 @@ def main():
     duplicates_parser = subparsers.add_parser("duplicates", help="Find duplicate papers across specified collections.")
     duplicates_parser.add_argument("--collections", required=True, help="Comma-separated list of Zotero collection names.")
     duplicates_parser.set_defaults(func=duplicates_command)
+
+    # Add 'graph' subcommand
+    graph_parser = subparsers.add_parser("graph", help="Generate a citation graph in DOT format.")
+    graph_parser.add_argument("--collections", required=True, help="Comma-separated list of Zotero collection names to build the graph from.")
+    graph_parser.set_defaults(func=graph_command)
 
     args = parser.parse_args()
 

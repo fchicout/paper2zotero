@@ -140,6 +140,14 @@ Find duplicate papers (by DOI or normalized title) across multiple Zotero collec
 paper2zotero duplicates --collections "Reading List, My Research, Archive"
 ```
 
+### 11. Generate Citation Graph
+Generate a directed citation graph in Graphviz DOT format for papers within specified collections. The output can be piped to `dot` to generate an image (e.g., SVG, PNG).
+
+```bash
+paper2zotero graph --collections "AI, Machine Learning" > citation_graph.dot
+dot -Tsvg citation_graph.dot -o citation_graph.svg
+```
+
 ## Development
 
 ```bash
