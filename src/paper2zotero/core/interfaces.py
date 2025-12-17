@@ -89,6 +89,14 @@ class ZoteroGateway(ABC):
         """
         pass
 
+    @abstractmethod
+    def upload_attachment(self, parent_item_key: str, file_path: str, mime_type: str = "application/pdf") -> bool:
+        """
+        Uploads a file as an attachment to a parent item.
+        Handles the Zotero 3-step upload process.
+        """
+        pass
+
 class ArxivGateway(ABC):
     @abstractmethod
     def search(self, query: str, limit: int = 100) -> Iterator[ResearchPaper]:
