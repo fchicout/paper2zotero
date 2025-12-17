@@ -119,6 +119,13 @@ Remove all child items (PDFs, snapshots) from items in a specific folder to clea
 paper2zotero remove-attachments --folder "AI Security" --verbose
 ```
 
+### 8. Move Paper
+Move a paper (identified by DOI or arXiv ID) from one collection to another.
+
+```bash
+paper2zotero move --id "2301.00001" --from-col "Reading List" --to-col "AI Security"
+```
+
 ## Development
 
 ```bash

@@ -10,9 +10,10 @@ from paper2zotero.infra.ris_lib import RisLibGateway
 from paper2zotero.infra.springer_csv_lib import SpringerCsvLibGateway
 from paper2zotero.infra.ieee_csv_lib import IeeeCsvLibGateway
 from paper2zotero.client import PaperImporterClient, CollectionNotFoundError
+from paper2zotero.core.services.collection_service import CollectionService
 
-def get_common_clients():
-    """Helper to get Zotero and Arxiv clients from environment variables."""
+def get_zotero_gateway():
+    """Helper to get Zotero client from environment variables."""
     api_key = os.environ.get("ZOTERO_API_KEY")
     group_url = os.environ.get("ZOTERO_TARGET_GROUP")
 
@@ -31,13 +32,29 @@ def get_common_clients():
         print(f"Error: Could not extract Group ID from URL: {group_url}", file=sys.stderr)
         sys.exit(1)
 
-    zotero_gateway = ZoteroAPIClient(api_key, group_id)
+    return ZoteroAPIClient(api_key, group_id)
+
+def get_common_clients():
+    """Helper to get Zotero and Arxiv clients from environment variables."""
+    zotero_gateway = get_zotero_gateway()
     arxiv_gateway = ArxivLibGateway()
     bibtex_gateway = BibtexLibGateway()
     ris_gateway = RisLibGateway()
     springer_csv_gateway = SpringerCsvLibGateway()
     ieee_csv_gateway = IeeeCsvLibGateway()
     return PaperImporterClient(zotero_gateway, arxiv_gateway, bibtex_gateway, ris_gateway, springer_csv_gateway, ieee_csv_gateway)
+
+def move_command(args):
+    """Handles the 'move' subcommand."""
+    gateway = get_zotero_gateway()
+    service = CollectionService(gateway)
+    
+    success = service.move_item(args.from_col, args.to_col, args.id)
+    if success:
+        print(f"Successfully moved item '{args.id}' from '{args.from_col}' to '{args.to_col}'.")
+    else:
+        print(f"Failed to move item '{args.id}'. Check if it exists in the source collection.")
+        sys.exit(1)
 
 def add_command(args):
     """Handles the 'add' subcommand."""
@@ -224,6 +241,13 @@ def main():
     remove_parser.add_argument("--folder", required=True, help="The Zotero collection (folder) name.")
     remove_parser.add_argument("--verbose", action="store_true", help="Enable verbose output.")
     remove_parser.set_defaults(func=remove_attachments_command)
+
+    # Add 'move' subcommand
+    move_parser = subparsers.add_parser("move", help="Move a paper from one collection to another.")
+    move_parser.add_argument("--id", required=True, help="The DOI or arXiv ID of the paper.")
+    move_parser.add_argument("--from-col", required=True, help="The source collection name.")
+    move_parser.add_argument("--to-col", required=True, help="The destiny collection name.")
+    move_parser.set_defaults(func=move_command)
 
     args = parser.parse_args()
 
