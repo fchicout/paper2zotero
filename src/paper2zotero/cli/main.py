@@ -11,6 +11,7 @@ from paper2zotero.infra.springer_csv_lib import SpringerCsvLibGateway
 from paper2zotero.infra.ieee_csv_lib import IeeeCsvLibGateway
 from paper2zotero.client import PaperImporterClient, CollectionNotFoundError
 from paper2zotero.core.services.collection_service import CollectionService
+from paper2zotero.core.services.audit_service import CollectionAuditor # Import CollectionAuditor
 
 def get_zotero_gateway():
     """Helper to get Zotero client from environment variables."""
@@ -54,6 +55,34 @@ def move_command(args):
         print(f"Successfully moved item '{args.id}' from '{args.from_col}' to '{args.to_col}'.")
     else:
         print(f"Failed to move item '{args.id}'. Check if it exists in the source collection.")
+        sys.exit(1)
+
+def audit_command(args):
+    """Handles the 'audit' subcommand."""
+    gateway = get_zotero_gateway()
+    auditor = CollectionAuditor(gateway)
+
+    report = auditor.audit_collection(args.collection)
+    if report:
+        print(f"Audit Report for collection '{args.collection}':")
+        print(f"  Total items: {report.total_items}")
+        if report.items_missing_id:
+            print(f"  Items missing ID (DOI/arXiv): {len(report.items_missing_id)}")
+            for item in report.items_missing_id:
+                print(f"    - {item.title} (Key: {item.key})")
+        if report.items_missing_title:
+            print(f"  Items missing Title: {len(report.items_missing_title)}")
+            for item in report.items_missing_title:
+                print(f"    - (Key: {item.key})")
+        if report.items_missing_abstract:
+            print(f"  Items missing Abstract: {len(report.items_missing_abstract)}")
+            for item in report.items_missing_abstract:
+                print(f"    - {item.title} (Key: {item.key})")
+        if report.items_missing_pdf:
+            print(f"  Items missing PDF attachment: {len(report.items_missing_pdf)}")
+            for item in report.items_missing_pdf:
+                print(f"    - {item.title} (Key: {item.key})")
+    else:
         sys.exit(1)
 
 def add_command(args):
@@ -248,6 +277,11 @@ def main():
     move_parser.add_argument("--from-col", required=True, help="The source collection name.")
     move_parser.add_argument("--to-col", required=True, help="The destiny collection name.")
     move_parser.set_defaults(func=move_command)
+
+    # Add 'audit' subcommand
+    audit_parser = subparsers.add_parser("audit", help="Audit a Zotero collection for completeness.")
+    audit_parser.add_argument("--collection", required=True, help="The Zotero collection (folder) name to audit.")
+    audit_parser.set_defaults(func=audit_command)
 
     args = parser.parse_args()
 

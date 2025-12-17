@@ -126,6 +126,13 @@ Move a paper (identified by DOI or arXiv ID) from one collection to another.
 paper2zotero move --id "2301.00001" --from-col "Reading List" --to-col "AI Security"
 ```
 
+### 9. Audit Collection
+Audit a Zotero collection for completeness (presence of ID, title, abstract, and PDF attachment).
+
+```bash
+paper2zotero audit --collection "My Research"
+```
+
 ## Development
 
 ```bash
