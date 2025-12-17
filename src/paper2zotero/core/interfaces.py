@@ -37,32 +37,27 @@ class ZoteroGateway(ABC):
         pass
 
     @abstractmethod
-    def get_items_in_collection(self, collection_id: str) -> Iterator[ZoteroItem]:
-        """
-        Retrieves all items in a specified collection.
-        """
-        pass
-
-    @abstractmethod
-    def get_item_children(self, item_key: str) -> List[Dict[str, Any]]:
-        """
-        Retrieves child items (like attachments) for a given item.
-        """
-        pass
-
-    @abstractmethod
-    def delete_item(self, item_key: str, version: int) -> bool:
-        """
-        Deletes an item by its key. Requires the current item version.
-        """
-        pass
-
-    @abstractmethod
     def update_item_collections(self, item_key: str, version: int, collections: List[str]) -> bool:
         """
         Updates the list of collections an item belongs to.
         Requires item_key, current version, and the new list of collection IDs.
         Returns True on success, False otherwise.
+        """
+        pass
+
+    @abstractmethod
+    def update_item_metadata(self, item_key: str, version: int, metadata: Dict[str, Any]) -> bool:
+        """
+        Updates specific metadata fields of an item.
+        Requires item_key, current version, and a dictionary of fields to update.
+        Returns True on success, False otherwise.
+        """
+        pass
+
+    @abstractmethod
+    def get_items_in_collection(self, collection_id: str) -> Iterator[ZoteroItem]:
+        """
+        Retrieves all items in a specified collection.
         """
         pass
 

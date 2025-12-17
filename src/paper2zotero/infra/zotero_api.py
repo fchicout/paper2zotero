@@ -172,3 +172,18 @@ class ZoteroAPIClient(ZoteroGateway):
             if hasattr(e, 'response') and e.response is not None:
                 print(f"Response content: {e.response.text}")
             return False
+
+    def update_item_metadata(self, item_key: str, version: int, metadata: Dict[str, Any]) -> bool:
+        url = f"{self.BASE_URL}/groups/{self.group_id}/items/{item_key}"
+        headers = self.session.headers.copy()
+        headers['If-Match'] = str(version)
+        
+        try:
+            response = self.session.patch(url, headers=headers, json=metadata)
+            response.raise_for_status()
+            return True
+        except requests.exceptions.RequestException as e:
+            print(f"Error updating item {item_key} metadata: {e}")
+            if hasattr(e, 'response') and e.response is not None:
+                print(f"Response content: {e.response.text}")
+            return False
