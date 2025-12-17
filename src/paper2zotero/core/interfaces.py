@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Optional, Iterator, List, Dict, Any
 from .models import ResearchPaper
+from .zotero_item import ZoteroItem
 
 class ZoteroGateway(ABC):
     @abstractmethod
@@ -29,7 +30,7 @@ class ZoteroGateway(ABC):
         pass
 
     @abstractmethod
-    def get_items_in_collection(self, collection_id: str) -> Iterator[Dict[str, Any]]:
+    def get_items_in_collection(self, collection_id: str) -> Iterator[ZoteroItem]:
         """
         Retrieves all items in a specified collection.
         """
