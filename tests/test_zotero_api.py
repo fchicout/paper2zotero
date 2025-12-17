@@ -9,9 +9,11 @@ class TestZoteroAPIClient(unittest.TestCase):
         self.api_key = "test_api_key"
         self.group_id = "1234567"
         self.client = ZoteroAPIClient(self.api_key, self.group_id)
+        # Mock the session object directly
+        self.client.session = Mock(spec=requests.Session)
+        self.client.session.headers = {} # Mock headers dict
 
-    @patch('requests.get')
-    def test_get_collection_id_by_name_success(self, mock_get):
+    def test_get_collection_id_by_name_success(self):
         mock_response = Mock()
         mock_response.status_code = 200
         mock_response.json.return_value = [
@@ -19,33 +21,30 @@ class TestZoteroAPIClient(unittest.TestCase):
             {"key": "COLL_2", "data": {"name": "Target Folder"}},
             {"key": "COLL_3", "data": {"name": "Another Folder"}},
         ]
-        mock_get.return_value = mock_response
+        self.client.session.get.return_value = mock_response
 
         collection_id = self.client.get_collection_id_by_name("Target Folder")
         self.assertEqual(collection_id, "COLL_2")
 
-    @patch('requests.post')
-    def test_create_collection_success(self, mock_post):
+    def test_create_collection_success(self):
         mock_response = Mock()
         mock_response.status_code = 200
         mock_response.json.return_value = {'successful': {'0': {'key': 'NEW_COLL_KEY'}}}
-        mock_post.return_value = mock_response
+        self.client.session.post.return_value = mock_response
 
         collection_id = self.client.create_collection("New Folder")
         self.assertEqual(collection_id, "NEW_COLL_KEY")
         
         expected_payload = [{"name": "New Folder"}]
-        mock_post.assert_called_once_with(
+        self.client.session.post.assert_called_once_with(
             f"{self.client.BASE_URL}/groups/{self.group_id}/collections",
-            headers=self.client.headers,
             json=expected_payload
         )
 
-    @patch('requests.post')
-    def test_create_item_full_metadata(self, mock_post):
+    def test_create_item_full_metadata(self):
         mock_response = Mock()
         mock_response.status_code = 200
-        mock_post.return_value = mock_response
+        self.client.session.post.return_value = mock_response
 
         paper = ResearchPaper(
             title="Test Title", 
@@ -74,9 +73,8 @@ class TestZoteroAPIClient(unittest.TestCase):
             "publicationTitle": "Journal of Testing",
             "date": "2023"
         }]
-        mock_post.assert_called_once_with(
+        self.client.session.post.assert_called_once_with(
             f"{self.client.BASE_URL}/groups/{self.group_id}/items",
-            headers=self.client.headers,
             json=expected_payload
         )
 
