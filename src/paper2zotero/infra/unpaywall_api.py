@@ -19,7 +19,7 @@ class UnpaywallAPIClient(MetadataProvider):
         if "10." not in identifier:
             return None
             
-        url = f"{self.BASE_URL}{identifier}?email={self.EMAIL}"
+        url = f"{self.BASE_URL}{identifier}?email={self.email}"
         
         try:
             response = requests.get(url)

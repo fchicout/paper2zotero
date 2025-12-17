@@ -62,6 +62,13 @@ class ZoteroGateway(ABC):
         pass
 
     @abstractmethod
+    def get_item_children(self, item_key: str) -> List[Dict[str, Any]]:
+        """
+        Retrieves child items (like attachments) for a given item.
+        """
+        pass
+
+    @abstractmethod
     def get_tags(self) -> List[str]:
         """
         Retrieves all unique tags in the library.
