@@ -31,6 +31,41 @@ class ZoteroAPIClient(ZoteroGateway):
             print(f"Error fetching collections: {e}")
             return []
 
+    def get_tags(self) -> List[str]:
+        url = f"{self.BASE_URL}/groups/{self.group_id}/tags"
+        try:
+            response = self.session.get(url, params={'limit': 100}) # Pagination might be needed
+            response.raise_for_status()
+            tags_data = response.json()
+            return [t['tag'] for t in tags_data]
+        except requests.exceptions.RequestException as e:
+            print(f"Error fetching tags: {e}")
+            return []
+
+    def get_items_by_tag(self, tag: str) -> Iterator[ZoteroItem]:
+        url = f"{self.BASE_URL}/groups/{self.group_id}/items"
+        limit = 100
+        start = 0
+        
+        while True:
+            try:
+                response = self.session.get(url, params={'limit': limit, 'start': start, 'tag': tag})
+                response.raise_for_status()
+                items = response.json()
+                
+                if not items:
+                    break
+                    
+                for item in items:
+                    yield ZoteroItem.from_raw_zotero_item(item)
+                
+                start += len(items)
+                if len(items) < limit:
+                    break
+            except requests.exceptions.RequestException as e:
+                print(f"Error fetching items by tag '{tag}': {e}")
+                break
+
     def get_collection_id_by_name(self, name: str) -> Optional[str]:
         collections = self.get_all_collections()
         for collection in collections:
