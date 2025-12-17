@@ -17,6 +17,8 @@ It automatically handles collection creation and populates rich metadata includi
 *   **Zotero Management**: Automatically creates collections (folders) if they don't exist.
 *   **Maintenance**: Utility to remove attachments (PDFs/snapshots) to save storage space.
 *   **Flexible Input**: Accepts queries via command arguments, files, or standard input (pipes).
+*   **Collection Management**: List collections, move papers between collections, audit collection completeness, and find duplicate papers.
+*   **Citation Analysis**: Generate rich citation graphs leveraging combined data from CrossRef and Semantic Scholar.
 
 ## Installation
 
@@ -48,11 +50,13 @@ pip install .
 You must set the following environment variables to authenticate with Zotero:
 
 ```bash
-export ZOTERO_API_KEY="your_api_key_here"
-export ZOTERO_TARGET_GROUP="https://www.zotero.org/groups/1234567/group_name"
+export ZOTERO_API_KEY="your_zotero_api_key_here"
+export ZOTERO_TARGET_GROUP="https://www.zotero.org/groups/1234567/your_group_name"
+export SEMANTIC_SCHOLAR_API_KEY="your_semantic_scholar_api_key_here"
 ```
 *   **ZOTERO_API_KEY**: Create one at [Zotero API Settings](https://www.zotero.org/settings/keys).
 *   **ZOTERO_TARGET_GROUP**: The URL or ID of the group library you want to manage.
+*   **SEMANTIC_SCHOLAR_API_KEY**: Obtain your API key from the Semantic Scholar API portal. This is used for enriched metadata and citation graph generation.
 
 ## Usage
 
@@ -133,21 +137,21 @@ Move a paper (identified by DOI or arXiv ID) from one collection to another.
 paper2zotero move --id "2301.00001" --from-col "Reading List" --to-col "AI Security"
 ```
 
-### 9. Audit Collection
+### 10. Audit Collection
 Audit a Zotero collection for completeness (presence of ID, title, abstract, and PDF attachment).
 
 ```bash
 paper2zotero audit --collection "My Research"
 ```
 
-### 10. Find Duplicates
+### 11. Find Duplicates
 Find duplicate papers (by DOI or normalized title) across multiple Zotero collections.
 
 ```bash
 paper2zotero duplicates --collections "Reading List, My Research, Archive"
 ```
 
-### 11. Generate Citation Graph
+### 12. Generate Citation Graph
 Generate a directed citation graph in Graphviz DOT format for papers within specified collections. The output can be piped to `dot` to generate an image (e.g., SVG, PNG).
 
 ```bash
