@@ -5,7 +5,7 @@ Web interface for converting Springer CSV files to BibTeX format.
 ## Quick Start
 
 ```bash
-python -m custom.web.app
+python -m bibtools.web.app
 ```
 
 Open: http://localhost:5000
@@ -35,7 +35,7 @@ pip install flask
 
 **Port already in use:**
 ```bash
-python -m flask --app custom.web.app run --port 5001
+python -m flask --app bibtools.web.app run --port 5001
 ```
 
 **Permission errors:**

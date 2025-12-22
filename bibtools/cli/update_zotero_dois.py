@@ -28,19 +28,19 @@ def main():
         epilog="""
 Examples:
   # Update DOIs in a group library (dry run first)
-  python -m custom.cli.update_zotero_dois --api-key YOUR_KEY --library-id 12345 --library-type group --dry-run
+  python -m bibtools.cli.update_zotero_dois --api-key YOUR_KEY --library-id 12345 --library-type group --dry-run
   
   # Actually update DOIs
-  python -m custom.cli.update_zotero_dois --api-key YOUR_KEY --library-id 12345 --library-type group
+  python -m bibtools.cli.update_zotero_dois --api-key YOUR_KEY --library-id 12345 --library-type group
   
   # Update DOIs in a specific collection
-  python -m custom.cli.update_zotero_dois --api-key YOUR_KEY --library-id 12345 --collection ABCD1234
+  python -m bibtools.cli.update_zotero_dois --api-key YOUR_KEY --library-id 12345 --collection ABCD1234
   
   # Update DOIs in user library
-  python -m custom.cli.update_zotero_dois --api-key YOUR_KEY --library-id 67890 --library-type user
+  python -m bibtools.cli.update_zotero_dois --api-key YOUR_KEY --library-id 67890 --library-type user
   
   # Limit number of items to process
-  python -m custom.cli.update_zotero_dois --api-key YOUR_KEY --library-id 12345 --limit 50
+  python -m bibtools.cli.update_zotero_dois --api-key YOUR_KEY --library-id 12345 --limit 50
 
 Environment Variables:
   ZOTERO_API_KEY     - Your Zotero API key (alternative to --api-key)

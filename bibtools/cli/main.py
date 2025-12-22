@@ -63,13 +63,13 @@ def setup_convert_parser(subparsers):
         epilog="""
 Examples:
   # Basic conversion
-  python -m custom.cli.main convert --input data/input/SearchResults.csv
+  python -m bibtools.cli.main convert --input data/input/SearchResults.csv
   
   # Conversion with author fixing
-  python -m custom.cli.main convert --input data/input/SearchResults.csv --fix-authors
+  python -m bibtools.cli.main convert --input data/input/SearchResults.csv --fix-authors
   
   # Custom output directory
-  python -m custom.cli.main convert --input data/input/SearchResults.csv --output-dir output/bibtex
+  python -m bibtools.cli.main convert --input data/input/SearchResults.csv --output-dir output/bibtex
         """
     )
     
@@ -108,13 +108,13 @@ def setup_extract_parser(subparsers):
         epilog="""
 Examples:
   # Basic extraction with default paths
-  python -m custom.cli.main extract-articles
+  python -m bibtools.cli.main extract-articles
   
   # Custom input file
-  python -m custom.cli.main extract-articles --input data/input/my_articles.csv
+  python -m bibtools.cli.main extract-articles --input data/input/my_articles.csv
   
   # Custom input and output
-  python -m custom.cli.main extract-articles --input data/input/articles.csv --output results/screening.xlsx
+  python -m bibtools.cli.main extract-articles --input data/input/articles.csv --output results/screening.xlsx
         """
     )
     

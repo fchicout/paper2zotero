@@ -18,13 +18,13 @@ def main():
         epilog="""
 Examples:
   # Dry run to see what would be reclassified
-  python -m custom.cli.reclassify_zotero_items --collection YOUR_COLLECTION_ID --dry-run
+  python -m bibtools.cli.reclassify_zotero_items --collection YOUR_COLLECTION_ID --dry-run
   
   # Reclassify items in a collection
-  python -m custom.cli.reclassify_zotero_items --collection YOUR_COLLECTION_ID
+  python -m bibtools.cli.reclassify_zotero_items --collection YOUR_COLLECTION_ID
   
   # Reclassify with limit
-  python -m custom.cli.reclassify_zotero_items --collection YOUR_COLLECTION_ID --limit 50
+  python -m bibtools.cli.reclassify_zotero_items --collection YOUR_COLLECTION_ID --limit 50
 
 Environment Variables:
   ZOTERO_API_KEY     - Your Zotero API key

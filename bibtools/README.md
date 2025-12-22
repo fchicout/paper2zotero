@@ -25,26 +25,26 @@ Fetch missing abstracts from multiple academic APIs and update your Zotero libra
 
 **Web Interface:**
 ```bash
-python -m custom.web.app
+python -m bibtools.web.app
 # Open: http://127.0.0.1:5000
 ```
 
 **Command Line:**
 ```bash
-python -m custom.cli.main --input data/input/SearchResults.csv --fix-authors
+python -m bibtools.cli.main --input data/input/SearchResults.csv --fix-authors
 ```
 
 ### Article Extraction Tool
 
 **Web Interface:**
 ```bash
-python -m custom.web.app
+python -m bibtools.web.app
 # Open: http://127.0.0.1:5000/extract-articles
 ```
 
 **Command Line:**
 ```bash
-python -m custom.cli.extract_articles --input data/input/articles.csv --output results/screening.xlsx
+python -m bibtools.cli.extract_articles --input data/input/articles.csv --output results/screening.xlsx
 ```
 
 ### Zotero DOI Updater
@@ -58,12 +58,12 @@ export ZOTERO_LIBRARY_TYPE="group"  # or "user"
 
 **Command Line (Dry Run):**
 ```bash
-python -m custom.cli.update_zotero_dois --dry-run
+python -m bibtools.cli.update_zotero_dois --dry-run
 ```
 
 **Command Line (Update):**
 ```bash
-python -m custom.cli.update_zotero_dois
+python -m bibtools.cli.update_zotero_dois
 ```
 
 ### Zotero Item Reclassifier

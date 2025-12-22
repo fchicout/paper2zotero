@@ -34,16 +34,16 @@ def main():
         epilog="""
 Examples:
   # Basic extraction with default paths
-  python -m custom.cli.extract_articles
+  python -m bibtools.cli.extract_articles
   
   # Custom input file
-  python -m custom.cli.extract_articles --input data/input/my_articles.csv
+  python -m bibtools.cli.extract_articles --input data/input/my_articles.csv
   
   # Custom input and output
-  python -m custom.cli.extract_articles --input data/input/articles.csv --output results/screening.xlsx
+  python -m bibtools.cli.extract_articles --input data/input/articles.csv --output results/screening.xlsx
   
   # Show help
-  python -m custom.cli.extract_articles --help
+  python -m bibtools.cli.extract_articles --help
         """
     )
     
