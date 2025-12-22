@@ -5,7 +5,7 @@ from bibtools.utils.config import get_zotero_config
 zotero_config = get_zotero_config()
 api_key = zotero_config['api_key']
 library_id = zotero_config['library_id']
-collection_id = "6WXB8QRV"  # raw_springer collection
+collection_id = "6WXB8QRV"  # TODO: Move to .env.local as ZOTERO_COLLECTION_ID
 
 headers = {'Zotero-API-Key': api_key}
 

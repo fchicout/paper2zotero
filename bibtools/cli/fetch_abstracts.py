@@ -186,13 +186,13 @@ def main():
         epilog="""
 Examples:
   # Dry run to see what would be updated
-  python -m bibtools.cli.fetch_abstracts --collection 6WXB8QRV --dry-run
+  python -m bibtools.cli.fetch_abstracts --collection YOUR_COLLECTION_ID --dry-run
   
   # Fetch and update abstracts
-  python -m bibtools.cli.fetch_abstracts --collection 6WXB8QRV
+  python -m bibtools.cli.fetch_abstracts --collection YOUR_COLLECTION_ID
   
   # Limit to 50 items
-  python -m bibtools.cli.fetch_abstracts --collection 6WXB8QRV --limit 50
+  python -m bibtools.cli.fetch_abstracts --collection YOUR_COLLECTION_ID --limit 50
 
 Environment Variables:
   ZOTERO_API_KEY     - Your Zotero API key

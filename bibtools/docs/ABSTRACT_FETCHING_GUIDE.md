@@ -42,10 +42,10 @@ SPRINGER_API_KEY=your_springer_api_key_here
 
 ```bash
 python -m bibtools.cli.fetch_abstracts \
-  --api-key yP1MW7wS6pkY2qXBK2gOcNHq \
-  --library-id 6287212 \
+  --api-key YOUR_ZOTERO_KEY \
+  --library-id YOUR_LIBRARY_ID \
   --library-type group \
-  --collection 6WXB8QRV \
+  --collection YOUR_COLLECTION_ID \
   --springer-api-key YOUR_SPRINGER_KEY \
   --limit 10000
 ```
@@ -54,10 +54,10 @@ python -m bibtools.cli.fetch_abstracts \
 
 ```bash
 python -m bibtools.cli.fetch_abstracts \
-  --api-key yP1MW7wS6pkY2qXBK2gOcNHq \
-  --library-id 6287212 \
+  --api-key YOUR_ZOTERO_KEY \
+  --library-id YOUR_LIBRARY_ID \
   --library-type group \
-  --collection 6WXB8QRV \
+  --collection YOUR_COLLECTION_ID \
   --limit 10000
 ```
 
@@ -65,14 +65,16 @@ python -m bibtools.cli.fetch_abstracts \
 
 ```bash
 python -m bibtools.cli.fetch_abstracts \
-  --api-key yP1MW7wS6pkY2qXBK2gOcNHq \
-  --library-id 6287212 \
+  --api-key YOUR_ZOTERO_KEY \
+  --library-id YOUR_LIBRARY_ID \
   --library-type group \
-  --collection 6WXB8QRV \
+  --collection YOUR_COLLECTION_ID \
   --springer-api-key YOUR_SPRINGER_KEY \
   --limit 10000 \
   --dry-run
 ```
+
+**Note:** It's recommended to use `.env.local` file instead of command-line arguments for credentials. See the main README for configuration details.
 
 ## Current Results
 

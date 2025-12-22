@@ -17,7 +17,7 @@ from bibtools.utils.config import get_zotero_config, get_springer_api_key
 zotero_config = get_zotero_config()
 API_KEY = zotero_config['api_key']
 LIBRARY_ID = zotero_config['library_id']
-COLLECTION_ID = "6WXB8QRV"  # raw_springer collection
+COLLECTION_ID = "6WXB8QRV"  # TODO: Move to .env.local as ZOTERO_COLLECTION_ID
 SPRINGER_KEY = get_springer_api_key()
 
 print("Updating ALL abstracts in raw_springer collection")
