@@ -7,6 +7,7 @@ import json
 import re
 import time
 import urllib.request
+import html as html_module
 from urllib.parse import quote
 
 from bibtools.core.zotero_doi_updater import ZoteroDOIUpdater
@@ -54,6 +55,8 @@ def fetch_abstract_crossref(doi):
             if abstract:
                 # Remove HTML tags
                 abstract = re.sub(r'<[^>]+>', '', abstract)
+                # Clean HTML entities (including numeric ones)
+                abstract = html_module.unescape(abstract)
                 return abstract.strip()
     except Exception:
         pass
@@ -93,6 +96,8 @@ def fetch_abstract_springer(doi, api_key=None):
                 if abstract:
                     # Clean HTML tags
                     abstract = re.sub(r'<[^>]+>', '', abstract)
+                    # Clean HTML entities (including numeric ones)
+                    abstract = html_module.unescape(abstract)
                     return abstract.strip()
     except Exception:
         pass
@@ -117,7 +122,15 @@ def fetch_abstract_europepmc(doi):
 
 
 def fetch_abstract_doi_org(doi):
-    """Try to fetch abstract by resolving DOI and scraping publisher page."""
+    """
+    Try to fetch abstract by resolving DOI and scraping publisher page.
+    
+    Uses multiple strategies in order of reliability:
+    1. JSON-LD structured data (most reliable, used by Springer and others)
+    2. Publisher-specific HTML patterns (Springer sections)
+    3. Citation meta tags (academic standard)
+    4. General meta tags (fallback for truncated content)
+    """
     try:
         # Resolve DOI
         url = f"https://doi.org/{doi}"
@@ -127,52 +140,131 @@ def fetch_abstract_doi_org(doi):
         
         with urllib.request.urlopen(req, timeout=15) as response:
             html = response.read().decode('utf-8', errors='ignore')
-            
-            # For Springer, get the abstract section
-            # Pattern 1: Section with aria-labelledby="Abs1" and data-title="Abstract"
-            springer_patterns = [
-                r'<section[^>]*aria-labelledby="Abs1"[^>]*data-title="Abstract"[^>]*>(.*?)</section>',
-                r'<section[^>]*data-title="Abstract"[^>]*aria-labelledby="Abs1"[^>]*>(.*?)</section>',
-                r'<div[^>]*id="Abs1-section"[^>]*>(.*?)</div>',
-                r'<section[^>]*id="Abs1"[^>]*>(.*?)</section>',
-            ]
-            
-            for pattern in springer_patterns:
-                match = re.search(pattern, html, re.IGNORECASE | re.DOTALL)
-                if match:
-                    abstract_html = match.group(1)
-                    # Remove all HTML tags and get plain text
-                    abstract = re.sub(r'<[^>]+>', ' ', abstract_html)
-                    # Clean up whitespace
-                    abstract = re.sub(r'\s+', ' ', abstract)
-                    # Clean HTML entities
-                    abstract = abstract.replace('&nbsp;', ' ')
-                    abstract = abstract.replace('&amp;', '&')
-                    abstract = abstract.replace('&lt;', '<')
-                    abstract = abstract.replace('&gt;', '>')
-                    abstract = abstract.replace('&quot;', '"')
-                    abstract = abstract.strip()
-                    # Check if substantial
-                    if len(abstract) > 100:
-                        return abstract
-            
-            # Fallback: Try meta tags (usually shorter but complete)
-            meta_patterns = [
-                r'<meta name="description" content="([^"]+)"',
-                r'<meta property="og:description" content="([^"]+)"',
-                r'<meta name="dc\.description" content="([^"]+)"',
-            ]
-            
-            for pattern in meta_patterns:
-                match = re.search(pattern, html, re.IGNORECASE)
-                if match:
-                    abstract = match.group(1)
-                    # Clean HTML entities
-                    abstract = abstract.replace('&nbsp;', ' ')
-                    abstract = abstract.replace('&amp;', '&')
-                    abstract = abstract.strip()
-                    if len(abstract) > 100:
-                        return abstract
+        
+        # Strategy 1: Try JSON-LD structured data first (most reliable)
+        # Many publishers including Springer embed abstracts in JSON-LD
+        json_ld_pattern = r'<script[^>]*type="application/ld\+json"[^>]*>(.*?)</script>'
+        json_matches = re.findall(json_ld_pattern, html, re.IGNORECASE | re.DOTALL)
+        
+        for json_str in json_matches:
+            try:
+                data = json.loads(json_str)
+                # Check for description field
+                description = data.get('description', '')
+                if description and len(description) > 300:
+                    # Clean HTML entities (including numeric ones like &#8220;)
+                    description = html_module.unescape(description)
+                    description = re.sub(r'\s+', ' ', description).strip()
+                    return description
+            except json.JSONDecodeError:
+                continue
+        
+        # Strategy 2: Publisher-specific HTML section patterns
+        
+        # Springer patterns (updated for nested divs)
+        springer_patterns = [
+            r'<section[^>]*aria-labelledby="Abs1"[^>]*data-title="Abstract"[^>]*>(.*?)</section>',
+            r'<section[^>]*data-title="Abstract"[^>]*aria-labelledby="Abs1"[^>]*>(.*?)</section>',
+            r'<div[^>]*id="Abs1-content"[^>]*>(.*?)</div>',  # More specific - gets the actual content
+            r'<div[^>]*id="Abs1-section"[^>]*>(.*?)</div>',
+            r'<section[^>]*id="Abs1"[^>]*>(.*?)</section>',
+        ]
+        
+        # IEEE patterns
+        ieee_patterns = [
+            r'<div[^>]*class="[^"]*abstract[^"]*"[^>]*>(.*?)</div>',
+            r'<meta[^>]*name="description"[^>]*content="Abstract:\s*([^"]+)"',
+        ]
+        
+        # ACM patterns
+        acm_patterns = [
+            r'<div[^>]*class="abstractSection[^"]*"[^>]*>(.*?)</div>',
+            r'<section[^>]*id="abstract"[^>]*>(.*?)</section>',
+        ]
+        
+        # Elsevier/ScienceDirect patterns
+        elsevier_patterns = [
+            r'<div[^>]*class="abstract[^"]*"[^>]*id="[^"]*abs[^"]*"[^>]*>(.*?)</div>',
+            r'<div[^>]*id="abstracts"[^>]*>(.*?)</div>',
+            r'<p[^>]*id="[^"]*abs[^"]*"[^>]*>(.*?)</p>',
+        ]
+        
+        # Wiley patterns
+        wiley_patterns = [
+            r'<section[^>]*class="article-section__abstract"[^>]*>(.*?)</section>',
+            r'<div[^>]*class="article__abstract"[^>]*>(.*?)</div>',
+        ]
+        
+        # MDPI patterns
+        mdpi_patterns = [
+            r'<div[^>]*class="art-abstract[^"]*"[^>]*>(.*?)</div>',
+            r'<section[^>]*class="abstract"[^>]*>(.*?)</section>',
+        ]
+        
+        # Combine all publisher patterns
+        all_patterns = (
+            springer_patterns + 
+            ieee_patterns + 
+            acm_patterns + 
+            elsevier_patterns + 
+            wiley_patterns + 
+            mdpi_patterns
+        )
+        
+        for pattern in all_patterns:
+            match = re.search(pattern, html, re.IGNORECASE | re.DOTALL)
+            if match:
+                abstract_html = match.group(1)
+                # Remove all HTML tags and get plain text
+                abstract = re.sub(r'<[^>]+>', ' ', abstract_html)
+                # Clean up whitespace
+                abstract = re.sub(r'\s+', ' ', abstract)
+                # Clean HTML entities (including numeric ones like &#8220;)
+                abstract = html_module.unescape(abstract)
+                abstract = abstract.strip()
+                
+                # Check if substantial (at least 300 chars for a real abstract)
+                if len(abstract) > 300:
+                    return abstract
+        
+        # Strategy 3: Try citation meta tags (academic standard)
+        # Different publishers use different citation meta tag names
+        citation_patterns = [
+            r'<meta name="citation_abstract" content="([^"]+)"',
+            r'<meta name="dc\.description" content="([^"]+)"',
+            r'<meta name="DC\.Description" content="([^"]+)"',
+            r'<meta name="abstract" content="([^"]+)"',
+            r'<meta property="article:abstract" content="([^"]+)"',
+        ]
+        
+        for pattern in citation_patterns:
+            match = re.search(pattern, html, re.IGNORECASE)
+            if match:
+                abstract = match.group(1)
+                abstract = html_module.unescape(abstract)
+                abstract = abstract.strip()
+                if len(abstract) > 300:
+                    return abstract
+        
+        # Strategy 4: Fallback to general meta tags (only if substantial)
+        meta_patterns = [
+            r'<meta name="description" content="([^"]+)"',
+            r'<meta property="og:description" content="([^"]+)"',
+            r'<meta name="dc\.description" content="([^"]+)"',
+        ]
+        
+        for pattern in meta_patterns:
+            match = re.search(pattern, html, re.IGNORECASE)
+            if match:
+                abstract = match.group(1)
+                # Clean HTML entities (including numeric ones like &#8220;)
+                abstract = html_module.unescape(abstract)
+                abstract = abstract.strip()
+                # Only use meta tags if they're substantial (at least 500 chars)
+                # This avoids truncated descriptions
+                if len(abstract) > 500:
+                    return abstract
+                    
     except Exception:
         pass
     return None

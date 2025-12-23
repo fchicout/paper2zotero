@@ -20,11 +20,15 @@ src/paper2zotero/infra/ieee_csv_lib.py
 src/paper2zotero/infra/ris_lib.py
 src/paper2zotero/infra/springer_csv_lib.py
 src/paper2zotero/infra/zotero_api.py
+tests/test_article_abstract.py
 tests/test_arxiv_lib.py
 tests/test_bibtex_lib.py
 tests/test_cli.py
 tests/test_client.py
+tests/test_complete_abstract.py
+tests/test_crossref_abstract.py
 tests/test_ieee_csv_lib.py
 tests/test_ris_lib.py
+tests/test_springer_api.py
 tests/test_springer_csv_lib.py
 tests/test_zotero_api.py

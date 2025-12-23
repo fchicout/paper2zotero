@@ -85,7 +85,13 @@ for i, item in enumerate(items_with_doi, 1):
         if abstract:
             source = 'Springer API'
     
-    # Try other sources
+    # Try improved scraper early (works great for Springer and others)
+    if not abstract:
+        abstract = fetch_abstract_doi_org(item['doi'])
+        if abstract:
+            source = 'DOI.org (scraped)'
+    
+    # Try other API sources
     if not abstract:
         abstract = fetch_abstract_openalex(item['doi'])
         if abstract:
@@ -106,18 +112,33 @@ for i, item in enumerate(items_with_doi, 1):
         if abstract:
             source = 'Europe PMC'
     
-    if not abstract:
-        abstract = fetch_abstract_doi_org(item['doi'])
-        if abstract:
-            source = 'DOI.org (scraped)'
-    
     # Update if found
     if abstract:
         # Check if it's different/longer than current
         current_len = len(item['current_abstract'])
         new_len = len(abstract)
         
+        # Determine if we should update
+        should_update = False
+        reason = ""
+        
         if new_len > current_len:
+            should_update = True
+            reason = f"longer: {current_len} → {new_len} chars"
+        elif item['current_abstract'].endswith('...'):
+            should_update = True
+            reason = f"truncated (ends with ...): {current_len} → {new_len} chars"
+        elif '&#' in item['current_abstract']:
+            should_update = True
+            reason = f"has HTML entities: {current_len} → {new_len} chars"
+        elif item['current_abstract'].endswith('.') and not abstract.endswith('.'):
+            # Current seems complete, new doesn't - skip
+            should_update = False
+        elif not item['current_abstract'].endswith('.') and abstract.endswith('.'):
+            should_update = True
+            reason = f"new is complete: {current_len} → {new_len} chars"
+        
+        if should_update:
             # Update in Zotero
             item['data']['abstractNote'] = abstract
             update_url = f"{base_url}/items/{item['key']}"
@@ -136,7 +157,7 @@ for i, item in enumerate(items_with_doi, 1):
                 
                 if update_response.status_code == 204:
                     updated += 1
-                    print(f"  ✓ Updated ({current_len} → {new_len} chars) [{source}]")
+                    print(f"  ✓ Updated ({reason}) [{source}]")
                 else:
                     failed += 1
                     print(f"  ✗ Failed to update")
@@ -145,7 +166,7 @@ for i, item in enumerate(items_with_doi, 1):
                 print(f"  ✗ Error: {e}")
         else:
             skipped += 1
-            print(f"  → Skipped (current is same/longer: {current_len} chars)")
+            print(f"  → Skipped (not better than current: {current_len} chars)")
     else:
         print(f"  ✗ No abstract found")
     
